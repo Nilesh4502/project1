@@ -79,7 +79,9 @@ function initFirebaseAuth(app) {
 
 // Returns the signed-in user's profile Pic URL.
 function getProfilePicUrl() {
+  console.log('in profile:')
   return getAuth(app).currentUser.photoURL || '/images/profile_placeholder.png';
+  
 }
 console.log(`appname ${app.name}  storage ${storage} db ${db}`);
 export {app, db, storage,initFirebaseAuth, getProfilePicUrl};

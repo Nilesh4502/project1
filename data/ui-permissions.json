@@ -19,6 +19,12 @@
                 "title": "Profile"
             },
             {
+                "id": "Room",
+                "componentName": "Rooms",
+                "route": "/Room",
+                "title": "Room"
+            },
+            {
                 "id": "settings",
                 "componentName": "Settings",
                 "route": "/settings",
@@ -42,6 +48,12 @@
                 "componentName": "Profile",
                 "route": "/profile",
                 "title": "Profile"
+            },
+            {
+                "id": "Room",
+                "componentName": "Rooms",
+                "route": "/Room",
+                "title": "Room"
             },
             {
                 "id": "settings",

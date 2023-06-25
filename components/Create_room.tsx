@@ -1,7 +1,14 @@
-import { useState,useEffect, Component } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp } from 'firebase/firestore';
-
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  doc,
+  serverTimestamp
+} from 'firebase/firestore';
+import { useSession } from "next-auth/react";
 require('dotenv').config();
 import {
   Button,
@@ -25,13 +32,54 @@ function RoomComponent() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [Roomid, setRoomId] = useState('');
-  const [long,setLong]=useState('');
-  const [lat,setLat]=useState('');
+  const [long, setLong] = useState('');
+  const [lat, setLat] = useState('');
   const [name, setName] = useState('');
   const router = useRouter();
   const [location, setLocation] = useState(null);
+  const { data: session, status } = useSession();
+  const [prevSession, setPrevSession] = useState(session);
+  console.log(" in room page session is ", session , status);
 
-  const handleCreateRoom = async () => {
+  useEffect(() => {
+    console.log("in use effect for header component",status , session);
+    if (prevSession !== session) {
+      setPrevSession(session);
+    }
+  }, [session, status]);
+
+  useEffect(() => {
+    // Get the user's current location
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setLat(latitude.toString());
+        setLong(longitude.toString());
+        const key = process.env.NEXT_PUBLIC_MAP_API_KEY;
+
+        try {
+          // Retrieve location details based on coordinates using fetch
+          const response = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${key}`);
+          const data = await response.json();
+
+          if (data.length > 0) {
+            const { name, state, country } = data[0];
+            setLocation({ name, state, country });
+            console.log(data);
+          } else {
+            console.error('Location details not found');
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }, []);
+
+  async function handleCreateRoom() {
     const State = {
       Roomid: Roomid,
       name: name,
@@ -39,8 +87,6 @@ function RoomComponent() {
     };
 
     try {
-      
-
       const roomDocRef = doc(collection(db, 'rooms'));
       const geoDetailsRef = collection(roomDocRef, 'geoDetails');
       const addressRef = doc(geoDetailsRef, 'address');
@@ -109,42 +155,7 @@ function RoomComponent() {
         isClosable: true,
       });
     }
-  };
-
-  useEffect(() => {
-    // Get the user's current location
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        setLat(latitude.toString());
-        setLong(longitude.toString());
-        const key = process.env.NEXT_PUBLIC_MAP_API_KEY;
-
-        try {
-          // Retrieve location details based on coordinates using fetch
-          const response = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${key}`);
-          const data = await response.json();
-
-          if (data.length > 0) {
-            const { name, state, country } = data[0];
-            setLocation({ name, state, country });
-            console.log(location);
-            console.log(data);
-          } else {
-            console.error('Location details not found');
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
-  }, []);
-
-
-
+  }
 
   return (
     <div>
